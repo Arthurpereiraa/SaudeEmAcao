@@ -1,14 +1,13 @@
 package br.com.saudeemacao.Saude.em.acao.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-
 import br.com.saudeemacao.Saude.em.acao.dto.LoginDTO;
 import br.com.saudeemacao.Saude.em.acao.model.Usuario;
 import br.com.saudeemacao.Saude.em.acao.repository.UsuarioRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
@@ -19,7 +18,7 @@ public class AuthService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; // Injeção pela interface PasswordEncoder
 
     private static final String SECRET_KEY = "secret";
 
