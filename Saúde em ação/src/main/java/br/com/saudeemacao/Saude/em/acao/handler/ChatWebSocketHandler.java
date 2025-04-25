@@ -34,37 +34,46 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try {
-            // Recebe a mensagem, converte para o objeto Message e salva no MySQL
+            // Converte a mensagem JSON para objeto Mensagem
             Mensagem newMessage = objectMapper.readValue(message.getPayload(), Mensagem.class);
-            messageRepository.save(newMessage); // Salva a mensagem no banco
 
-            // Extrai o chatId da URL da sessão (parâmetro de consulta)
+            // Salva a mensagem no banco de dados
+            messageRepository.save(newMessage);
+
+            // Extrai o chatId da sessão atual
             String sessionChatId = extractChatIdFromSession(session);
 
-            // Envia a mensagem apenas para os usuários conectados ao mesmo chatId
+            // Envia a mensagem para todos no mesmo chatId
             for (WebSocketSession webSocketSession : sessions) {
-                String webSocketChatId = extractChatIdFromSession(webSocketSession); // Extrai o chatId da outra sessão
+                String webSocketChatId = extractChatIdFromSession(webSocketSession);
                 if (webSocketSession.isOpen() && sessionChatId != null && sessionChatId.equals(webSocketChatId)) {
                     webSocketSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(newMessage)));
                 }
             }
         } catch (IOException e) {
-            // Logar o erro
             e.printStackTrace();
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        sessions.remove(session); // Remove a sessão quando o WebSocket é desconectado
+        sessions.remove(session);
     }
 
-    // Método auxiliar para extrair o chatId da URL
     private String extractChatIdFromSession(WebSocketSession session) {
-        String query = session.getUri().getQuery();
-        if (query != null && query.contains("chatId=")) {
-            return query.substring(query.indexOf("chatId=") + 7);
+        try {
+            String query = session.getUri().getQuery();
+            if (query != null) {
+                String[] params = query.split("&");
+                for (String param : params) {
+                    if (param.startsWith("chatId=")) {
+                        return param.substring(7);
+                    }
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
         }
-        return null; // Ou lance uma exceção, dependendo da sua lógica
     }
 }
